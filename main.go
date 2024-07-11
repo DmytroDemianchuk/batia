@@ -22,8 +22,13 @@ func main() {
 	}
 
 	botToken := os.Getenv("TG_API_BOT_TOKEN")
+	botUsername := os.Getenv("TG_BOT_USERNAME")
 	if botToken == "" {
 		log.Fatal("TG_API_BOT_TOKEN is not set")
+	}
+
+	if botUsername == "" {
+		log.Fatal("TG_BOT_USERNAME is not set")
 	}
 
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
@@ -180,7 +185,7 @@ func main() {
 		case "мене кінув шеф на гроші":
 			sendVoice(bot, update, "voice/verovka.ogg", "мене кінув шеф на гроші")
 		case "Реферальне посилання":
-			sendReferralLink(bot, update.Message.Chat.ID)
+			sendReferralLink(bot, update.Message.Chat.ID, botUsername)
 		}
 
 	}, th.AnyMessage())
@@ -189,9 +194,9 @@ func main() {
 }
 
 // Function to send referral link
-func sendReferralLink(bot *telego.Bot, chatID int64) {
-	// Generate a unique referral link (example: using chat ID as a parameter)
-	referralLink := "https://example.com/telegram-bot/referral?user_id=" + strconv.FormatInt(chatID, 10)
+func sendReferralLink(bot *telego.Bot, chatID int64, botUsername string) {
+	// Generate a unique referral link to the bot
+	referralLink := "https://t.me/" + botUsername + "?start=" + strconv.FormatInt(chatID, 10)
 
 	// Message with referral link
 	message := tu.Message(
