@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
@@ -48,35 +49,38 @@ func main() {
 		// Create custom keyboard with buttons
 		keyboard := tu.Keyboard(
 			tu.KeyboardRow(
-				tu.KeyboardButton("що є поїсти ?"),
-				tu.KeyboardButton("я долбойоб ?"),
+				tu.KeyboardButton("що є поїсти ?"), // Added button "Горошок"
+				tu.KeyboardButton("я долбойоб ?"),  // Added button "Дауни"
 			),
 			tu.KeyboardRow(
-				tu.KeyboardButton("де заробить грошей ?"),
-				tu.KeyboardButton("А шо не так ?"),
+				tu.KeyboardButton("де заробить грошей ?"), // Added button "Іди крадь"
+				tu.KeyboardButton("А шо не так ?"),        // Added button "Гатила"
 			),
 			tu.KeyboardRow(
-				tu.KeyboardButton("шо робить з цим підром ?"),
-				tu.KeyboardButton("а Сухлякі шо ?"),
+				tu.KeyboardButton("шо робить з цим підром ?"), // Added button "Іди крадь"
+				tu.KeyboardButton("а Сухлякі шо ?"),           // Added button "Гатила"
 			),
 			tu.KeyboardRow(
-				tu.KeyboardButton("як ти ?"),
-				tu.KeyboardButton("горілка"),
+				tu.KeyboardButton("як ти ?"), // Added button "Іди крадь"
+				tu.KeyboardButton("горілка"), // Added button "Гатила"
 			),
 			tu.KeyboardRow(
-				tu.KeyboardButton("приучила"),
-				tu.KeyboardButton("єбало"),
+				tu.KeyboardButton("приучила"), // Added button "Іди крадь"
+				tu.KeyboardButton("єбало"),    // Added button "Гатила"
 			),
 			tu.KeyboardRow(
-				tu.KeyboardButton("хуйло"),
-				tu.KeyboardButton("мене кінув шеф на гроші"),
+				tu.KeyboardButton("хуйло"),                   // Added button "Іди крадь"
+				tu.KeyboardButton("мене кінув шеф на гроші"), // Added button "Гатила"
+			),
+			tu.KeyboardRow(
+				tu.KeyboardButton("Реферальне посилання"), // Added referral button
 			),
 		)
 
 		// Prepare message with custom keyboard
 		message := tu.Message(
 			tu.ID(chatID),
-			"Натискай на кнопки, щоб отримати голосове повідомлення",
+			"Натискай на кнопки, щоб отримати голосове повідомлення або скористайтеся Реферальним посиланням",
 		).WithReplyMarkup(keyboard)
 
 		// Send message with custom keyboard
@@ -89,23 +93,22 @@ func main() {
 	}, th.CommandEqual("start"))
 
 	// Function to send voice message and handle consecutive send count
-	sendVoice := func(bot *telego.Bot, update telego.Update, voiceFile string) {
+	sendVoice := func(bot *telego.Bot, update telego.Update, voiceFile, button string) {
 		if update.Message == nil {
 			return
 		}
 
 		chatID := update.Message.Chat.ID
-		text := update.Message.Text
 
 		// Check if the same voice message was sent consecutively
-		if lastVoiceSent[chatID] == text {
+		if lastVoiceSent[chatID] == button {
 			consecutiveVoiceSendCount[chatID]++
 		} else {
 			consecutiveVoiceSendCount[chatID] = 1
 		}
 
 		// Update the last voice message sent
-		lastVoiceSent[chatID] = text
+		lastVoiceSent[chatID] = button
 
 		// Check if the consecutive send count exceeds the maximum allowed
 		if consecutiveVoiceSendCount[chatID] > MaxConsecutiveVoiceSends {
@@ -150,28 +153,55 @@ func main() {
 
 		text := update.Message.Text
 
-		// Map of text triggers to voice files
-		voiceResponses := map[string]string{
-			"що є поїсти ?":            "voice/2.ogg",
-			"я долбойоб ?":             "voice/two_downs.ogg",
-			"де заробить грошей ?":     "voice/krad_.ogg",
-			"А шо не так ?":            "voice/hatyla.ogg",
-			"горілка":                  "voice/kol_ka.ogg",
-			"як ти ?":                  "voice/worse.ogg",
-			"а Сухлякі шо ?":           "voice/suchlak.ogg",
-			"шо робить з цим підром ?": "voice/axe.ogg",
-			"єбало":                    "voice/ebalo.ogg",
-			"хуйло":                    "voice/huilo.ogg",
-			"приучила":                 "voice/priuchila.ogg",
-			"мене кінув шеф на гроші":  "voice/verovka.ogg",
-		}
-
 		// Check if the text matches any trigger
-		if voiceFile, found := voiceResponses[text]; found {
-			sendVoice(bot, update, voiceFile)
+		switch text {
+		case "що є поїсти ?":
+			sendVoice(bot, update, "voice/2.ogg", "що є поїсти ?")
+		case "я долбойоб ?":
+			sendVoice(bot, update, "voice/two_downs.ogg", "я долбойоб ?")
+		case "де заробить грошей ?":
+			sendVoice(bot, update, "voice/krad_.ogg", "де заробить грошей ?")
+		case "А шо не так ?":
+			sendVoice(bot, update, "voice/hatyla.ogg", "А шо не так ?")
+		case "горілка":
+			sendVoice(bot, update, "voice/kol_ka.ogg", "горілка")
+		case "як ти ?":
+			sendVoice(bot, update, "voice/worse.ogg", "як ти ?")
+		case "а Сухлякі шо ?":
+			sendVoice(bot, update, "voice/suchlak.ogg", "а Сухлякі шо ?")
+		case "шо робить з цим підром ?":
+			sendVoice(bot, update, "voice/axe.ogg", "шо робить з цим підром ?")
+		case "єбало":
+			sendVoice(bot, update, "voice/ebalo.ogg", "єбало")
+		case "хуйло":
+			sendVoice(bot, update, "voice/huilo.ogg", "хуйло")
+		case "приучила":
+			sendVoice(bot, update, "voice/priuchila.ogg", "приучила")
+		case "мене кінув шеф на гроші":
+			sendVoice(bot, update, "voice/verovka.ogg", "мене кінув шеф на гроші")
+		case "Реферальне посилання":
+			sendReferralLink(bot, update.Message.Chat.ID)
 		}
 
 	}, th.AnyMessage())
 
 	bh.Start()
+}
+
+// Function to send referral link
+func sendReferralLink(bot *telego.Bot, chatID int64) {
+	// Generate a unique referral link (example: using chat ID as a parameter)
+	referralLink := "https://example.com/telegram-bot/referral?user_id=" + strconv.FormatInt(chatID, 10)
+
+	// Message with referral link
+	message := tu.Message(
+		tu.ID(chatID),
+		"Скористайтеся цим посиланням для продовження на вашому телефоні: "+referralLink,
+	)
+
+	// Send message with referral link
+	_, err := bot.SendMessage(message)
+	if err != nil {
+		log.Println("Failed to send referral link:", err)
+	}
 }
